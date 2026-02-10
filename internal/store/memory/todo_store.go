@@ -75,6 +75,24 @@ func (s *TodoStore) MarkDone(id string) (model.Todo, error) {
 	return model.Todo{}, store.ErrTodoNotFound
 }
 
+// Delete 按 id 删除 todo。
+// 找到则删除并返回 nil；找不到返回 store.ErrTodoNotFound。
+func (s *TodoStore) Delete(id string) error {
+	// 写操作（删除切片元素）需要独占锁。
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for i := range s.todos {
+		if s.todos[i].ID == id {
+			// 通过切片拼接移除目标元素。
+			s.todos = append(s.todos[:i], s.todos[i+1:]...)
+			return nil
+		}
+	}
+
+	return store.ErrTodoNotFound
+}
+
 // generateID 生成一个基于 UTC 时间戳的字符串 ID。
 //
 // 格式: YYYYMMDDhhmmss.nanoseconds

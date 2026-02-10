@@ -16,6 +16,13 @@ func NewRouter(todoHandler *handler.TodoHandler) http.Handler {
 	mux.HandleFunc("GET /healthz", handler.Health)
 	mux.HandleFunc("POST /api/v1/todos", todoHandler.Create)
 	mux.HandleFunc("GET /api/v1/todos", todoHandler.List)
+	mux.HandleFunc("DELETE /api/v1/todos/", func(w http.ResponseWriter, r *http.Request) {
+		// 期望路径: /api/v1/todos/{id}
+		id := strings.TrimPrefix(r.URL.Path, "/api/v1/todos/")
+		id = strings.Trim(id, "/")
+		// 由 handler 做 id 格式校验和错误映射。
+		todoHandler.Delete(w, r, id)
+	})
 
 	mux.HandleFunc("PATCH /api/v1/todos/", func(w http.ResponseWriter, r *http.Request) {
 		// 这里只接受 .../{id}/done 这样的路径。

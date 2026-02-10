@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/yang/go-learning-backend/internal/store"
 )
+
+var todoIDPattern = regexp.MustCompile(`^\d{14}\.\d{9}$`)
 
 // TodoHandler 是 HTTP 层的待办事项处理器。
 // 它只负责:
@@ -96,4 +99,42 @@ func (h *TodoHandler) MarkDone(w http.ResponseWriter, r *http.Request, id string
 
 	// 更新成功返回 200 + 更新后的 todo。
 	writeJSON(w, http.StatusOK, todo)
+}
+
+// Delete 按 id 删除某个 todo。
+// 返回规则：
+// 1) id 非法 -> 400
+// 2) todo 不存在 -> 404
+// 3) 其他存储错误 -> 500
+// 4) 删除成功 -> 200
+func (h *TodoHandler) Delete(w http.ResponseWriter, _ *http.Request, id string) {
+	id = strings.TrimSpace(id)
+	if !isValidTodoID(id) {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid todo id"})
+		return
+	}
+
+	if err := h.store.Delete(id); err != nil {
+		if errors.Is(err, store.ErrTodoNotFound) {
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": "todo not found"})
+			return
+		}
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to delete todo"})
+		return
+	}
+
+	// Week 02 采用统一响应结构: data + error。
+	writeJSON(w, http.StatusOK, map[string]any{
+		"data": map[string]any{
+			"id":      id,
+			"deleted": true,
+		},
+		"error": nil,
+	})
+}
+
+// isValidTodoID 校验 todo id 格式是否符合当前内存存储实现。
+// 当前规则与 generateID 输出一致: YYYYMMDDhhmmss.nanoseconds。
+func isValidTodoID(id string) bool {
+	return todoIDPattern.MatchString(id)
 }

@@ -1,33 +1,28 @@
 # Examples 运行说明
 
-本文档说明如何运行 `examples` 下的示例代码。
+本文档说明如何运行 `examples` 下每周示例代码。
 
 ## 前置条件
 
 - 已安装 Go（建议使用与项目一致的版本）。
-- 当前终端目录在项目根目录（包含 `go.mod` 的目录）。
+- 终端位于项目根目录（包含 `go.mod` 的目录）。
 
 ## 目录说明
 
-当前示例位于：
-
-- `examples/week01`
-- `examples/week01/cmd`（`go run` 入口）
-
-说明：
-
-- `examples/week01` 是普通包（`package week01`），用于放可复用函数与测试。
-- `examples/week01/cmd` 是 `main` 程序入口，用于直接演示输出结果。
+- `examples/week01`：Week01 示例函数与测试（普通包）。
+- `examples/week01/cmd`：Week01 独立运行入口（`go run`）。
+- `examples/week02`：Week02 示例函数与测试（普通包）。
+- `examples/week02/cmd`：Week02 独立运行入口（`go run`）。
 
 ## 运行方式
 
-1. 直接运行示例入口（推荐先跑这个）：
+1. 运行 Week01 示例入口：
 
 ```bash
 go run ./examples/week01/cmd
 ```
 
-示例输出（你的 map 键顺序可能不同，这是 Go 的正常行为）：
+示例输出（map 键顺序可能不同）：
 
 ```text
 Greet: hello, Go Learner
@@ -38,19 +33,33 @@ FirstPositive(normal): 2
 FirstPositive(error): no positive number found
 ```
 
-2. 运行 week01 全部示例测试：
+2. 运行 Week02 示例入口：
+
+```bash
+go run ./examples/week02/cmd
+```
+
+示例输出：
+
+```text
+Parsed ID: 20260210112233.123456789
+Success JSON: {"data":{"id":"20260210112233.123456789","deleted":true},"error":null}
+Error JSON: {"data":null,"error":"invalid todo id"}
+```
+
+3. 运行 Week01 示例测试：
 
 ```bash
 go test -v ./examples/week01
 ```
 
-3. 只运行某一个测试（示例：去重函数）：
+4. 运行 Week02 示例测试：
 
 ```bash
-go test -v ./examples/week01 -run TestUniqueStrings
+go test -v ./examples/week02
 ```
 
-4. 运行仓库所有测试（包含 examples）：
+5. 运行仓库所有测试（包含 examples）：
 
 ```bash
 go test ./...
@@ -58,16 +67,20 @@ go test ./...
 
 ## 文档规则
 
-1. 新增 `examples/*` 示例代码时，必须同步更新本文件中的“目录说明”和“运行方式”。
-2. 如果新增了 `go run` 入口，必须写明完整可执行命令（从项目根目录开始执行）。
-3. 如果命令、路径或包名发生变化，必须在同一次改动中更新本文件，避免文档过期。
+1. 新增 `examples/weekXX` 时，必须同步更新本文件：
+- 目录说明
+- `go run` 命令
+- `go test` 命令
+- 示例输出
+
+2. 如果路径、包名或命令变化，必须同次改动更新本文件，避免文档过期。
 
 ## 常见问题
 
 1. 报错 `go.mod file not found`
 - 原因：不在项目根目录执行命令。
-- 解决：先 `cd` 到仓库根目录，再运行上述命令。
+- 解决：先 `cd` 到仓库根目录，再运行命令。
 
-2. `go run ./examples/week01` 报错
-- 原因：`examples/week01` 是普通包，不是 `main` 包。
-- 解决：使用 `go run ./examples/week01/cmd`。
+2. 报错 `package ... is not a main package`
+- 原因：直接运行了普通包（如 `go run ./examples/week01`）。
+- 解决：运行 `cmd` 入口，例如 `go run ./examples/week01/cmd`。

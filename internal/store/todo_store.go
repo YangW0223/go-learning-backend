@@ -19,4 +19,5 @@ type TodoStore interface {
 	Create(title string) (model.Todo, error)
 	List() ([]model.Todo, error)
 	MarkDone(id string) (model.Todo, error)
+	Delete(id string) error
 }
