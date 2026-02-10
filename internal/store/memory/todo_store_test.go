@@ -2,6 +2,7 @@ package memory
 
 import "testing"
 
+// TestTodoStore_CreateAndList 验证最基本的“创建 + 列表查询”流程。
 func TestTodoStore_CreateAndList(t *testing.T) {
 	s := NewTodoStore()
 
@@ -24,6 +25,7 @@ func TestTodoStore_CreateAndList(t *testing.T) {
 	}
 }
 
+// TestTodoStore_MarkDone 验证按 ID 更新完成状态的流程。
 func TestTodoStore_MarkDone(t *testing.T) {
 	s := NewTodoStore()
 
