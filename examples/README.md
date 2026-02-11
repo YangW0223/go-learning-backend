@@ -13,6 +13,8 @@
 - `examples/week01/cmd`：Week01 独立运行入口（`go run`）。
 - `examples/week02`：Week02 示例函数与测试（普通包）。
 - `examples/week02/cmd`：Week02 独立运行入口（`go run`）。
+- `examples/week03`：Week03 并发与 context 示例函数与测试（普通包）。
+- `examples/week03/cmd`：Week03 独立运行入口（`go run`）。
 
 ## 运行方式
 
@@ -63,6 +65,31 @@ go test -v ./examples/week02
 
 ```bash
 go test ./...
+```
+
+6. 运行 Week03 示例入口：
+
+```bash
+go run ./examples/week03/cmd
+```
+
+示例输出：
+
+```text
+SumWithMutex: 15
+SumWithChannel: 15
+FirstValue: 7
+ListWithTimeout(success): [todo-1 todo-2 todo-3]
+ListWithTimeout(timeout): request timeout: deadline=40ms
+ChatRoom alice received: hello bob
+ChatRoom bob received: hello bob
+ChatRoom stats: users=1 messages=1
+```
+
+7. 运行 Week03 示例测试：
+
+```bash
+go test -v ./examples/week03
 ```
 
 ## 文档规则
