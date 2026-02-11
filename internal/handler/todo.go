@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/yang/go-learning-backend/internal/cache"
+	"github.com/yang/go-learning-backend/internal/service"
 	"github.com/yang/go-learning-backend/internal/store"
 )
 
@@ -18,12 +20,21 @@ var todoIDPattern = regexp.MustCompile(`^\d{14}\.\d{9}$`)
 // 2) 调用 store 执行业务动作
 // 3) 把结果映射成 HTTP 状态码和 JSON 响应
 type TodoHandler struct {
-	store store.TodoStore
+	service service.TodoService
 }
 
 // NewTodoHandler 用依赖注入方式创建 handler，便于测试替换 store。
 func NewTodoHandler(todoStore store.TodoStore) *TodoHandler {
-	return &TodoHandler{store: todoStore}
+	todoService := service.NewTodoService(todoStore, cache.NewNoopTodoCache(), 0)
+	return &TodoHandler{service: todoService}
+}
+
+// NewTodoHandlerWithService 允许上层注入完整业务服务（例如带 Redis 缓存）。
+func NewTodoHandlerWithService(todoService service.TodoService) *TodoHandler {
+	if todoService == nil {
+		panic("todo service is nil")
+	}
+	return &TodoHandler{service: todoService}
 }
 
 // createTodoRequest 对应 POST /api/v1/todos 的 JSON 请求体。
@@ -54,7 +65,7 @@ func (h *TodoHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 调用存储层执行创建。这里把存储层错误统一映射为 500。
-	todo, err := h.store.Create(req.Title)
+	todo, err := h.service.Create(r.Context(), req.Title)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to create todo"})
 		return
@@ -67,8 +78,8 @@ func (h *TodoHandler) Create(w http.ResponseWriter, r *http.Request) {
 // List 返回所有 todo。
 // 成功: 200 + JSON 数组
 // 失败: 500
-func (h *TodoHandler) List(w http.ResponseWriter, _ *http.Request) {
-	todos, err := h.store.List()
+func (h *TodoHandler) List(w http.ResponseWriter, r *http.Request) {
+	todos, err := h.service.List(r.Context())
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to list todos"})
 		return
@@ -80,11 +91,7 @@ func (h *TodoHandler) List(w http.ResponseWriter, _ *http.Request) {
 // MarkDone 按 id 把某个 todo 标记为完成。
 // 路由层已经负责从 URL 里提取 id，这里只关注业务执行与错误映射。
 func (h *TodoHandler) MarkDone(w http.ResponseWriter, r *http.Request, id string) {
-	// r 目前未使用，保留参数是为了保持 handler 签名一致性，
-	// 也便于后续扩展（例如读取请求头、trace 信息等）。
-	_ = r
-
-	todo, err := h.store.MarkDone(id)
+	todo, err := h.service.MarkDone(r.Context(), id)
 	if err != nil {
 		// 业务可识别错误 -> 404，更符合 REST 语义。
 		if errors.Is(err, store.ErrTodoNotFound) {
@@ -107,14 +114,14 @@ func (h *TodoHandler) MarkDone(w http.ResponseWriter, r *http.Request, id string
 // 2) todo 不存在 -> 404
 // 3) 其他存储错误 -> 500
 // 4) 删除成功 -> 200
-func (h *TodoHandler) Delete(w http.ResponseWriter, _ *http.Request, id string) {
+func (h *TodoHandler) Delete(w http.ResponseWriter, r *http.Request, id string) {
 	id = strings.TrimSpace(id)
 	if !isValidTodoID(id) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid todo id"})
 		return
 	}
 
-	if err := h.store.Delete(id); err != nil {
+	if err := h.service.Delete(r.Context(), id); err != nil {
 		if errors.Is(err, store.ErrTodoNotFound) {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "todo not found"})
 			return
