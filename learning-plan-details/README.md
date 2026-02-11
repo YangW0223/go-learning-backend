@@ -1,6 +1,6 @@
-# 12 周学习计划详解（执行版）
+# 14 周学习计划详解（执行版）
 
-本目录把 `LEARNING_PLAN_12_WEEKS.md` 的每一周拆成可直接执行的步骤、检查点和交付物。
+本目录把 `LEARNING_PLAN_12_WEEKS.md`（含补充周）的每一周拆成可直接执行的步骤、检查点和交付物。
 
 ## 文件清单
 
@@ -16,6 +16,8 @@
 - `week-10-testing-system.md`
 - `week-11-delivery-deployment.md`
 - `week-12-summary-advanced.md`
+- `week-13-api-governance-resilience.md`
+- `week-14-observability-async.md`
 - `weekly-rhythm-template.md`
 
 ## 使用方式
@@ -27,4 +29,4 @@
 
 ## 建议执行顺序
 
-按周顺序推进，不建议跳周。如果时间不足，先保留“项目步骤 + 验收步骤”，把“扩展任务”延后。
+按周顺序推进，不建议跳周。如果时间不足，先保留“项目步骤 + 验收步骤”，把“扩展任务”延后。Week 13-14 建议在完成前 12 周后作为体系补齐阶段执行。
