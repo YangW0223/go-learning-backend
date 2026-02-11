@@ -1,0 +1,69 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: gin_backend_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_NAME: gin-backend
+      APP_ENV: docker
+      HTTP_PORT: "8081"
+      HTTP_REQUEST_TIMEOUT_MS: "3000"
+      PG_DSN: "postgres://postgres:postgres@postgres:5432/gin_backend?sslmode=disable"
+      PG_MAX_OPEN_CONNS: "20"
+      PG_MAX_IDLE_CONNS: "10"
+      PG_CONN_MAX_LIFETIME_MS: "300000"
+      REDIS_ENABLED: "true"
+      REDIS_ADDR: "redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
+      REDIS_DB: "${REDIS_DB:-0}"
+      REDIS_DIAL_TIMEOUT_MS: "1000"
+      REDIS_RW_TIMEOUT_MS: "1000"
+      REDIS_CACHE_TTL_SECONDS: "30"
+      JWT_SECRET: "${JWT_SECRET:-change-me-please}"
+      TOKEN_TTL_MINUTES: "120"
+      LOG_LEVEL: "info"
+    ports:
+      - "${APP_PORT:-8081}:8081"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gin_backend_postgres
+    environment:
+      POSTGRES_DB: gin_backend
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - gin-backend-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gin_backend"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: gin_backend_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - gin-backend-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  gin-backend-postgres:
+  gin-backend-redis:
