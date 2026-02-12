@@ -49,6 +49,34 @@ gin-backend/
   README.md
 ```
 
+### 目录与文件作用说明
+
+| 路径 | 作用 |
+| --- | --- |
+| `cmd/server/main.go` | 程序入口。负责加载配置、初始化依赖、构建路由、启动 HTTP 服务与优雅停机。 |
+| `internal/bootstrap/` | 应用装配层。把配置、数据库、缓存、服务、路由等组件按顺序组装起来。 |
+| `internal/config/` | 配置定义与加载。统一读取环境变量、设置默认值、做启动前配置校验。 |
+| `internal/transport/http/router/` | 路由注册与路由分组（如 `/api/v1`）。负责把 URL 映射到 handler。 |
+| `internal/transport/http/handler/` | HTTP 处理层。做参数绑定、请求校验、调用 service、返回标准响应。 |
+| `internal/transport/http/middleware/` | HTTP 中间件集合。包含鉴权、日志、request id、超时、CORS、恢复等。 |
+| `internal/transport/http/dto/` | 传输对象定义。约束请求/响应结构，避免直接暴露内部模型。 |
+| `internal/service/` | 业务编排层。承载核心业务规则、事务边界、跨 repository 的流程控制。 |
+| `internal/repository/` | 数据访问抽象层。定义仓储接口，降低 service 对具体存储实现的耦合。 |
+| `internal/repository/postgres/` | Postgres 实现。负责 SQL、事务、模型读写。 |
+| `internal/repository/redis/` | Redis 实现。负责缓存读写、key 设计、TTL 与失效策略。 |
+| `internal/model/` | 领域模型层。定义核心业务实体（如 User、Todo）及其行为边界。 |
+| `internal/auth/` | 认证相关能力。包含密码哈希校验、JWT 签发与解析等。 |
+| `internal/errs/` | 错误模型与错误码。统一业务错误表达并映射到 HTTP 状态码。 |
+| `internal/observability/` | 可观测能力。封装日志、指标、健康检查依赖探针等。 |
+| `internal/testkit/` | 测试支撑工具。提供测试数据构造、mock/stub、公共断言辅助。 |
+| `migrations/` | 数据库迁移脚本目录。按版本维护 schema 演进，支持 up/down。 |
+| `scripts/` | 维护脚本目录。放迁移执行器、初始化脚本、开发辅助脚本等。 |
+| `docker/docker-compose.yaml` | 本地编排文件。定义 API、Postgres、Redis 容器及网络、卷、端口。 |
+| `docker/.env.example` | Compose 示例环境变量。提供本地开发默认配置模板。 |
+| `Dockerfile` | 镜像构建文件。采用多阶段构建产出可运行的最小镜像。 |
+| `Makefile` | 开发任务入口。统一常用命令（run/test/migrate/docker-up 等）。 |
+| `README.md` | 项目使用文档。说明启动步骤、配置项、接口示例、常见问题排查。 |
+
 ## 后端体系标准
 
 ## 1. 配置体系
