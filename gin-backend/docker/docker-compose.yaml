@@ -2,6 +2,8 @@
 # - 在同一网络内启动 API + Postgres + Redis。
 # - 大多数对外端口都可通过环境变量覆盖。
 # - Makefile 会使用 `docker/.env.example` 作为 env-file。
+name: gin-backend
+
 services:
   api:
     # 从仓库根目录构建 API 镜像，确保 Dockerfile 可访问全部源码。
@@ -61,7 +63,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5432}:5433"
     volumes:
       # 持久化数据库文件，避免容器重建后数据丢失。
       - gin-backend-postgres:/var/lib/postgresql/data
@@ -78,7 +80,7 @@ services:
     image: redis:7.2-alpine
     container_name: gin_backend_redis
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_PORT:-6379}:6380"
     volumes:
       # 持久化 Redis 数据（前提是运行参数启用了持久化策略）。
       - gin-backend-redis:/data

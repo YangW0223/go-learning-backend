@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/yang/go-learning-backend/gin-backend/internal/errs"
 )
@@ -17,9 +16,6 @@ func responseBindError(err error) *errs.AppError {
 	var ve validator.ValidationErrors
 	if errors.As(err, &ve) {
 		return errs.WithMessage(errs.ErrBadRequest, "request validation failed")
-	}
-	if errors.Is(err, binding.ErrMissingContentType) {
-		return errs.WithMessage(errs.ErrBadRequest, "content-type is required")
 	}
 	return errs.WithMessage(errs.ErrBadRequest, "invalid request body")
 }
