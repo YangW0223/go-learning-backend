@@ -1,49 +1,72 @@
+# 本地开发用 Compose 配置。
+# - 在同一网络内启动 API + Postgres + Redis。
+# - 大多数对外端口都可通过环境变量覆盖。
+# - Makefile 会使用 `docker/.env.example` 作为 env-file。
 services:
   api:
+    # 从仓库根目录构建 API 镜像，确保 Dockerfile 可访问全部源码。
     build:
       context: ..
       dockerfile: Dockerfile
     container_name: gin_backend_api
+    # 确保依赖服务就绪后再启动 API。
+    # `service_healthy` 依赖下方每个服务定义的 healthcheck。
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
+      # 应用基础运行参数。
       APP_NAME: gin-backend
       APP_ENV: docker
       HTTP_PORT: "8081"
       HTTP_REQUEST_TIMEOUT_MS: "3000"
+
+      # Postgres 连接与连接池参数。
       PG_DSN: "postgres://postgres:postgres@postgres:5432/gin_backend?sslmode=disable"
       PG_MAX_OPEN_CONNS: "20"
       PG_MAX_IDLE_CONNS: "10"
       PG_CONN_MAX_LIFETIME_MS: "300000"
+
+      # Redis 缓存参数。
       REDIS_ENABLED: "true"
       REDIS_ADDR: "redis:6379"
+      # 从 env-file 或 shell 读取；本地开发默认可为空。
       REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
       REDIS_DB: "${REDIS_DB:-0}"
       REDIS_DIAL_TIMEOUT_MS: "1000"
       REDIS_RW_TIMEOUT_MS: "1000"
       REDIS_CACHE_TTL_SECONDS: "30"
+
+      # 认证与令牌参数。
+      # 重要：生产环境请务必替换该默认值。
       JWT_SECRET: "${JWT_SECRET:-change-me-please}"
       TOKEN_TTL_MINUTES: "120"
+
+      # 日志级别。
       LOG_LEVEL: "info"
     ports:
+      # 宿主机端口可配置；容器内固定监听 8081。
       - "${APP_PORT:-8081}:8081"
     restart: unless-stopped
 
   postgres:
+    # 轻量 Postgres 镜像，适用于本地/开发环境。
     image: postgres:16-alpine
     container_name: gin_backend_postgres
     environment:
+      # 首次初始化时创建数据库和账号信息。
       POSTGRES_DB: gin_backend
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
+      # 持久化数据库文件，避免容器重建后数据丢失。
       - gin-backend-postgres:/var/lib/postgresql/data
     healthcheck:
+      # 仅当数据库可接受连接时标记为 healthy。
       test: ["CMD-SHELL", "pg_isready -U postgres -d gin_backend"]
       interval: 5s
       timeout: 3s
@@ -51,19 +74,24 @@ services:
     restart: unless-stopped
 
   redis:
+    # 轻量 Redis 镜像，用于缓存/会话场景。
     image: redis:7.2-alpine
     container_name: gin_backend_redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
+      # 持久化 Redis 数据（前提是运行参数启用了持久化策略）。
       - gin-backend-redis:/data
     healthcheck:
+      # 返回 `PONG` 表示 Redis 响应正常。
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
     restart: unless-stopped
 
+# 由 Docker 管理的命名卷。
+# 显式声明有助于更可控地管理生命周期。
 volumes:
   gin-backend-postgres:
   gin-backend-redis:
