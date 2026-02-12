@@ -15,6 +15,10 @@
 - `migrations`：SQL migration
 - `scripts/migrate`：migration 执行脚本
 
+## 架构说明
+
+- 服务如何由目录代码组成：`docs/service-architecture.md`
+
 ## 快速开始
 
 ### 1. 本地依赖
